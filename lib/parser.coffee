@@ -269,7 +269,7 @@ Parser.prototype =
       throw new Error('the "filename" option is required to use "' + purpose + '" with "relative" paths')
     if path[0] == '/' and !@options.basedir
       throw new Error('the "basedir" option is required to use "' + purpose + '" with "absolute" paths')
-    path = join(if path[0] == '/' then @options.basedir else dirname(@filename), path)
+    path = join (if path[0] == '/' then @options.basedir else dirname(@filename)), path
     if basename(path).indexOf('.') == -1
       path += '.jade'
     path
@@ -453,37 +453,35 @@ Parser.prototype =
     seenAttrs = false
     # (attrs | class | id)*
 
-    ###*out:
-      while (true) {
-        switch (this.peek().type) {
-          case 'id':
-          case 'class':
-            var tok = this.advance();
-            tag.setAttribute(tok.type, "'" + tok.val + "'");
-            continue;
-          case 'attrs':
-            if (seenAttrs) {
-              console.warn(this.filename + ', line ' + this.peek().line + ':\nYou should not have jade tags with multiple attributes.');
-            }
-            seenAttrs = true;
-            var tok = this.advance();
-            var attrs = tok.attrs;
+    out: () ->
+      while true
+        switch this.peek().type
+          #when 'id'
+          when 'class'
+            tok = this.advance()
+            tag.setAttribute tok.type, "'" + tok.val + "'"
+            continue
+          when 'attrs'
+            if seenAttrs
+              console.warn(this.filename + ', line ' + this.peek().line + ':\nYou should not have jade tags with multiple attributes.')
+            
+            seenAttrs = true
+            tok = this.advance()
+            attrs = tok.attrs
 
-            if (tok.selfClosing) tag.selfClosing = true;
+            if tok.selfClosing
+              tag.selfClosing = true;
 
-            for (var i = 0; i < attrs.length; i++) {
-              tag.setAttribute(attrs[i].name, attrs[i].val, attrs[i].escaped);
-            }
-            continue;
-          case '&attributes':
-            var tok = this.advance();
-            tag.addAttributes(tok.val);
-            break;
-          default:
-            break out;
-        }
-      }
-    ###
+            i = 0
+            for __, i in attrs
+              tag.setAttribute(attrs[i].name, attrs[i].val, attrs[i].escaped)
+              ++i
+            continue
+          when '&attributes'
+            tok = this.advance()
+            tag.addAttributes(tok.val)
+          else
+            break
 
     # check immediate '.'
     if 'dot' == @peek().type
